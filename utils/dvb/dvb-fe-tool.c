@@ -191,7 +191,7 @@ static int print_frontend_stats(FILE *fd,
 		else
 			tvheadend_counter = 0;
 
-		if (tvheadend_counter > 10)
+		if (tvheadend_counter > 15)
 		{
 			int run = system("service tvheadend restart");
 			(void) run;
