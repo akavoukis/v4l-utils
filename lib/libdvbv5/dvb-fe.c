@@ -1553,6 +1553,17 @@ static char *qual_name[] = {
 	[DVB_QUAL_GOOD] = N_("Good"),
 };
 
+int get_status(struct dvb_v5_fe_parms *p, uint32_t *status_ret)
+{
+	struct dvb_v5_fe_parms_priv *parms = (void *)p;
+	if (dvb_fe_retrieve_stats(&parms->p, DTV_STATUS, status_ret)) {
+		dvb_logerr (_("Error: no adapter status"));
+		return -1;
+	}
+
+	return 0;
+}
+
 int dvb_fe_snprintf_stat(struct dvb_v5_fe_parms *p, uint32_t cmd,
 			  char *display_name, int layer,
 		          char **buf, int *len, int *show_layer_name)

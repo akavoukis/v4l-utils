@@ -591,6 +591,7 @@ int dvb_fe_snprintf_eng(char *buf, int len, float val);
 			  char *display_name, int layer,
 		          char **buf, int *len, int *show_layer_name);
 
+int get_status(struct dvb_v5_fe_parms *p, uint32_t *status_ret);
 /**
  * @brief Get both status statistics and dvb parameters
  * @ingroup frontend

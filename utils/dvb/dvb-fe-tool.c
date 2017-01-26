@@ -56,6 +56,7 @@ static const struct argp_option options[] = {
 	{"set-delsys",	'd',	N_("PARAMS"),	0,	N_("set delivery system"), 0},
 	{"femon",	'm',	0,		0,	N_("monitors frontend stats on an streaming frontend"), 0},
 	{"acoustical",	'A',	0,		0,	N_("bips if signal quality is good. Also enables femon mode. Please notice that console bip should be enabled on your wm."), 0},
+        {"tvheadend",   'T',    0,              0,      N_("Restart tvheadend if status remain disconnected"), 0},
 #if 0 /* Currently not implemented */
 	{"set",		's',	N_("PARAMS"),	0,	N_("set frontend"), 0},
 #endif
@@ -77,6 +78,9 @@ static int delsys = 0;
 static int femon = 0;
 static int acoustical = 0;
 static int timeout_flag = 0;
+static int tvheadend = 0;
+static uint32_t *status_ret = NULL;
+int tvheadend_counter = 0;
 
 static void do_timeout(int x)
 {
@@ -120,6 +124,10 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
 		femon++;
 		acoustical++;
 		break;
+        case 'T':
+                femon++;
+                tvheadend++;
+                break;
 #if 0
 	case 's':
 		set_params = arg;
@@ -173,6 +181,23 @@ static int print_frontend_stats(FILE *fd,
 	p = buf;
 	len = sizeof(buf);
 	dvb_fe_snprintf_stat(parms,  DTV_STATUS, NULL, 0, &p, &len, &show);
+
+	if (tvheadend)
+	{
+        	get_status(parms, status_ret);
+
+		if (*status_ret == 0)
+			tvheadend_counter++;
+		else
+			tvheadend_counter = 0;
+
+		if (tvheadend_counter > 10)
+		{
+			int run = system("service tvheadend restart");
+			(void) run;
+			tvheadend_counter=0;
+		}
+	}
 
 	for (i = 0; i < MAX_DTV_STATS; i++) {
 		show = 1;
@@ -315,9 +340,17 @@ int main(int argc, char *argv[])
 		dvb_fe_prt_parms(parms);
 	}
 
-	if (femon)
-		get_show_stats(parms);
+	if (tvheadend)
+	{
+		status_ret = malloc(sizeof(uint32_t));
+	}
 
+	if (femon)
+	{
+		get_show_stats(parms);
+	}
+
+	free(status_ret);
 ret:
 	dvb_fe_close(parms);
 
